@@ -3,11 +3,13 @@
 Minimal point-to-point TCP TUN tunnel. One server, one client, PSK authentication, AEAD obfuscation.
 
 ```
-        ┌────────────┐         encrypted TCP        ┌────────────┐
-TUN ──> │   client   │  ───────────────────────>    │   server   │ ──> TUN
-10.1.1.2│ 10.1.1.2/30│  <───────────────────────    │ 10.1.1.1/30│ 10.1.1.1
-        └────────────┘     chacha20-poly1305 or      └────────────┘
-                              aes-256-gcm
+  ┌─────────────────┐    encrypted TCP    ┌─────────────────┐
+  │     client      │ ──────────────────> │     server      │
+  │  10.1.1.2/30    │ chacha20-poly1305 / │  10.1.1.1/30    │
+  │  fc11::2/126    │ <─── aes-256-gcm ── │  fc11::1/126    │
+  └────────┬────────┘                     └────────┬────────┘
+           │                                       │
+          TUN                                     TUN
 ```
 
 ## Design
@@ -62,6 +64,6 @@ ping6 fc11::1
 
 ## Limitations
 
-- No UDP transport, no multiple clients, no IP allocation, no v6, no routes, no rate limit. By design — for anything more, use [hush](../hush).
+- No UDP transport, no multiple clients, no IP allocation, no routes, no rate limit. By design.
 - TCP-over-TCP: under packet loss expect head-of-line blocking; pick a conservative MTU.
 - No replay window: each session derives a fresh `SK` from the handshake nonces, so cross-session replay is impossible. Within a session, monotonic AEAD counters prevent in-session replay.
